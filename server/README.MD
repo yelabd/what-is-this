@@ -1,5 +1,7 @@
 # Server
 
+The server is hosted at `http://167.99.228.85:8000`.
+
 Note: all URLs **must** have a trailing slash.
 
 ## User functions
