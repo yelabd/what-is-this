@@ -2,17 +2,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.conf.urls import url
 from django.http import HttpResponse
 
-from tastypie.authorization import DjangoAuthorization
-from tastypie.authorization import Authorization
 from tastypie.authentication import ApiKeyAuthentication
-
 from tastypie.http import HttpUnauthorized, HttpForbidden
-
 from tastypie.resources import ModelResource
 from tastypie.utils import trailing_slash
-
 from tastypie.models import ApiKey
 
+from classifier.authorization import UserOnlyAuthorization, ClassificationOnlyAuthorization
 from classifier.models import Classification
 from classifier.models import User
 
@@ -23,7 +19,7 @@ class UserResource(ModelResource):
         excludes = ['email', 'password', 'is_superuser']
         allowed_methods = ['get']
         authentication = ApiKeyAuthentication()
-        authorization = Authorization()
+        authorization = UserOnlyAuthorization()
 
     def prepend_urls(self):
         return [
@@ -112,5 +108,5 @@ class ClassificationResource(ModelResource):
         queryset = Classification.objects.all()
         resource_name = 'classification'
         authentication = ApiKeyAuthentication()
-        authorization = Authorization()
+        authorization = ClassificationOnlyAuthorization()
 
