@@ -21,7 +21,7 @@ class UserResource(ModelResource):
         queryset = User.objects.all()
         resource_name = 'user'
         excludes = ['email', 'password', 'is_superuser']
-        allowed_methods = ['post', 'get']
+        allowed_methods = ['get']
         authentication = ApiKeyAuthentication()
         authorization = Authorization()
 
@@ -48,7 +48,8 @@ class UserResource(ModelResource):
                 api_key = ApiKey.objects.get_or_create(user=user)
                 return self.create_response(request, {
                     'success': True,
-                    'apikey': api_key[0].key
+                    'api_key': api_key[0].key,
+                    'username': user.username
                 })
             else:
                 return self.create_response(request, {
@@ -62,12 +63,38 @@ class UserResource(ModelResource):
                 }, HttpUnauthorized )
     
     def register(self, request, **kwargs):
-        pass
+        self.method_check(request, allowed=['post'])
+
+        data = self.deserialize(request, request.body, format = request.META.get('CONTENT_TYPE', 'application/json'))
+
+        username = data.get('username', '')
+        password = data.get('password', '')
+
+        try:
+            User.objects.get(username=username)
+        except User.DoesNotExist:
+            user = User.objects.create_user(username=username, password=password)
+            if user:
+                login(request, user)
+                api_key = ApiKey.objects.get_or_create(user=user)
+                return self.create_response(request, {
+                    'success': True,
+                    'api_key': api_key[0].key,
+                    'username': user.username
+                })
+            else: 
+                return self.create_response(request, {
+                'success': False,
+                'reason': 'failed',
+                }, HttpForbidden )
+        else:
+            return self.create_response(request, {
+                    'success': False,
+                    'reason': 'User already exists!',
+                    }, HttpForbidden )
     
     def logout(self, request, **kwargs):
         self.method_check(request, allowed=['post'])
-
-        #import pdb; pdb.set_trace()
 
         self.is_authenticated(request)
 
