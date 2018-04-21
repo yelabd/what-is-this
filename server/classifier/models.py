@@ -11,4 +11,3 @@ class Classification(models.Model):
     confidence = models.CharField(max_length=100)
     photo = models.ImageField(upload_to='img')
     user = models.ForeignKey('User', on_delete=models.CASCADE)
-
