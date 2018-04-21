@@ -1,5 +1,4 @@
-from django.contrib.auth import authenticate
-from django.contrib.auth import login
+from django.contrib.auth import authenticate, login, logout
 from django.conf.urls import url
 from django.http import HttpResponse
 
@@ -38,8 +37,9 @@ class UserResource(ModelResource):
 
         data = self.deserialize(request, request.body, format = request.META.get('CONTENT_TYPE', 'application/json'))
 
-        username = data.get('email', '')
+        username = data.get('username', '')
         password = data.get('password', '')
+
         user = authenticate(username=username, password=password)
 
         if user:
@@ -66,7 +66,15 @@ class UserResource(ModelResource):
     
     def logout(self, request, **kwargs):
         self.method_check(request, allowed=['post'])
-        if request.user and request.user.is_authenticated():
+
+        #import pdb; pdb.set_trace()
+
+        self.is_authenticated(request)
+
+        if  request.user and request.user.is_authenticated:
+            api_key = ApiKey.objects.get(user=request.user)
+            api_key.key = None
+            api_key.save()
             logout(request)
             return self.create_response(request, { 'success': True })
         else:
