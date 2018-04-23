@@ -21,7 +21,7 @@ class UserResource(ModelResource):
     class Meta:
         queryset = User.objects.all()
         resource_name = 'user'
-        excludes = ['email', 'first_name', 'last_name', 
+        excludes = ['email', 'first_name', 'last_name',  'is_staff',
         'groups', 'password', 'is_superuser', 'is_active', 'user_permission']
         allowed_methods = ['get']
         authentication = ApiKeyAuthentication()
@@ -131,6 +131,10 @@ class ClassificationResource(ModelResource):
         resource_name = 'classification'
         authentication = ApiKeyAuthentication()
         authorization = ClassificationOnlyAuthorization()
+
+    def dehydrate(self, bundle):
+        bundle.data['user_id'] = bundle.obj.user_id
+        return bundle
 
     def prepend_urls(self):
         return [
