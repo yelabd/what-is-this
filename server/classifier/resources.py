@@ -29,9 +29,14 @@ class UserResource(ModelResource):
 
     def prepend_urls(self):
         return [
-            url(r"^(?P<resource_name>%s)/login%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('login'), name="user_login"),
-            url(r"^(?P<resource_name>%s)/register%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('register'), name="user_register"),
-            url(r"^(?P<resource_name>%s)/logout%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('logout'), name="user_logout"),
+            url(r"^(?P<resource_name>%s)/login%s$" %
+                (self._meta.resource_name, trailing_slash()), self.wrap_view('login'), name="user_login"),
+            url(r"^(?P<resource_name>%s)/register%s$" % 
+                (self._meta.resource_name, trailing_slash()), self.wrap_view('register'), name="user_register"),
+            url(r"^(?P<resource_name>%s)/logout%s$" %
+                (self._meta.resource_name, trailing_slash()), self.wrap_view('logout'), name="user_logout"),
+            url(r"^(?P<resource_name>%s)/(?P<userid>\d+)/classifications%s$" %
+                (self._meta.resource_name, trailing_slash()), self.wrap_view('list_classifications'), name="user_classifications")
         ]
 
     def login(self, request, **kwargs):
@@ -108,6 +113,17 @@ class UserResource(ModelResource):
             return self.create_response(request, { 'success': True })
         else:
             return self.create_response(request, { 'success': False }, HttpUnauthorized)
+
+    def list_classifications(self, request, **kwargs):
+        self.method_check(request, allowed=['get'])
+
+        self.is_authenticated(request)
+        print(kwargs['userid'])
+        if  request.user and request.user.is_authenticated:
+            qs = Classification.objects.filter(user=User.objects.get(id=kwargs['userid']))
+            return self.create_response(request, { 'success': True, 'objects': list(qs.values())})
+        else:
+            return self.create_response(request, { 'success': False }, HttpUnauthorized)  
 
 class ClassificationResource(ModelResource):
     class Meta:
