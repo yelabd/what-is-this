@@ -28,5 +28,7 @@ class Classification(models.Model):
     def to_dict(classification):
         ret = model_to_dict(classification)
         ret['photo'] = settings.MEDIA_URL + classification.photo.__str__()
+        ret['user_id'] = ret['user']
+        del ret['user']
         return ret
         
