@@ -14,7 +14,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.conf import settings
 from django.conf.urls import url, include
+from django.urls import re_path
+from django.views.static import serve
+
 from classifier.resources import UserResource
 from classifier.resources import ClassificationResource
 
@@ -24,5 +28,8 @@ classification_resource = ClassificationResource()
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/', include(user_resource.urls)),
-    url(r'^api/', include(classification_resource.urls))
+    url(r'^api/', include(classification_resource.urls)),
+    re_path(r'^media/(?P<path>.*)$', serve, {
+            'document_root': settings.MEDIA_ROOT,
+        }),
 ]
