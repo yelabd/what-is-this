@@ -1,7 +1,12 @@
+import base64
+
+from django.core import serializers
+from django.core.files.base import ContentFile
 from django.contrib.auth import authenticate, login, logout
 from django.conf.urls import url
 from django.http import HttpResponse
 
+from tastypie import fields
 from tastypie.authentication import ApiKeyAuthentication
 from tastypie.http import HttpUnauthorized, HttpForbidden
 from tastypie.resources import ModelResource
@@ -16,7 +21,8 @@ class UserResource(ModelResource):
     class Meta:
         queryset = User.objects.all()
         resource_name = 'user'
-        excludes = ['email', 'password', 'is_superuser']
+        excludes = ['email', 'first_name', 'last_name', 
+        'groups', 'password', 'is_superuser', 'is_active', 'user_permission']
         allowed_methods = ['get']
         authentication = ApiKeyAuthentication()
         authorization = UserOnlyAuthorization()
@@ -45,7 +51,7 @@ class UserResource(ModelResource):
                 return self.create_response(request, {
                     'success': True,
                     'api_key': api_key[0].key,
-                    'username': user.username
+                    'user': user.to_dict(),
                 })
             else:
                 return self.create_response(request, {
@@ -76,7 +82,7 @@ class UserResource(ModelResource):
                 return self.create_response(request, {
                     'success': True,
                     'api_key': api_key[0].key,
-                    'username': user.username
+                    'user': user.to_dict()
                 })
             else: 
                 return self.create_response(request, {
@@ -110,3 +116,28 @@ class ClassificationResource(ModelResource):
         authentication = ApiKeyAuthentication()
         authorization = ClassificationOnlyAuthorization()
 
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/create%s$" % (self._meta.resource_name, trailing_slash()), self.wrap_view('create'), name="classification_create")
+        ]
+
+    def create(self, request, **kwargs):
+        self.method_check(request, allowed=['post'])
+
+        data = self.deserialize(request, request.body, format = request.META.get('CONTENT_TYPE', 'application/json'))
+
+        b64 = data.get('photo', '')
+
+        self.is_authenticated(request)
+        if  request.user and request.user.is_authenticated:
+            
+            format, imgstr = b64.split(';base64,') 
+            ext = format.split('/')[-1] 
+            c = Classification.objects.create(result="i have no clue", confidence="0% not at all", user=request.user)
+            c.save()
+            photo = ContentFile(base64.b64decode(imgstr), name= str(c.id) + '.' + ext)
+            c.photo = photo
+            c.save()
+            return self.create_response(request, { 'success': True , 'classification': c.to_dict() })
+        else:
+            return self.create_response(request, { 'success': False }, HttpUnauthorized)
