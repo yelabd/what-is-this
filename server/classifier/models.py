@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.forms.models import model_to_dict
+from whatisthis import settings
 
 # Create your models here.
 
@@ -25,5 +26,7 @@ class Classification(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
 
     def to_dict(classification):
-        return model_to_dict(classification)
+        ret = model_to_dict(classification)
+        ret['photo'] = settings.MEDIA_URL + classification.photo.__str__()
+        return ret
         
