@@ -128,5 +128,5 @@ STATIC_URL = '/static/'
 
 
 #MEDIA
-MEDIA_ROOT = '/Users/ajbienz/cs252/what-is-this/server/img/'
+MEDIA_ROOT = '/mnt/img'
 MEDIA_URL = '/media/'
