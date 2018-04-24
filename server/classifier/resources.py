@@ -1,8 +1,10 @@
 import base64
+import json
 
 from django.core import serializers
 from django.core.files.base import ContentFile
 from django.contrib.auth import authenticate, login, logout
+from django.conf import settings
 from django.conf.urls import url
 from django.http import HttpResponse
 
@@ -124,7 +126,10 @@ class UserResource(ModelResource):
         print(kwargs['userid'])
         if  request.user and request.user.is_authenticated:
             qs = Classification.objects.filter(user=User.objects.get(id=kwargs['userid']))
-            return self.create_response(request, { 'success': True, 'objects': list(qs.values())})
+            l = list()
+            for c in qs:
+                l.append(c.to_dict())
+            return self.create_response(request, { 'success': True, 'objects': l })
         else:
             return self.create_response(request, { 'success': False }, HttpUnauthorized)  
 
@@ -134,6 +139,35 @@ class ClassificationResource(ModelResource):
         resource_name = 'classification'
         authentication = ApiKeyAuthentication()
         authorization = ClassificationOnlyAuthorization()
+
+    def obj_get_list(self, bundle, **kwargs):
+        return []
+
+    def get_list(self, bundle, **kwargs):
+        resp = super(ClassificationResource, self).get_list(bundle, **kwargs)
+        data = json.loads(resp.content)
+        #data = {}
+
+        l = list()
+        for c in Classification.objects.all():
+            l.append(c.to_dict())
+        data['objects'] = l
+
+        data = json.dumps(data)
+        return HttpResponse(data, content_type='application/json', status=200)
+
+    def get_detail(self, request, **kwargs):
+        resp = super(ClassificationResource, self).get_detail(request, **kwargs)
+
+        data = json.loads(resp.content)
+
+        print(kwargs)
+        data['result'] = list(ClassificationResult.objects.filter(
+            classification=kwargs['pk']).values('value', 'confidence'))
+
+        data = json.dumps(data)
+
+        return HttpResponse(data, content_type='application/json', status=200)
 
     def dehydrate(self, bundle):
         bundle.data['user_id'] = bundle.obj.user_id
@@ -165,7 +199,7 @@ class ClassificationResource(ModelResource):
             c.photo = photo
             c.save()
 
-            x = classify_image(c.photo.path, 0)
+            x = classify_image(c.photo.path, 0, settings.ML_ROOT)
             for value, confidence in x.items():
                 result = ClassificationResult.objects.create(value=value, confidence=confidence,
                     classification=c)
@@ -175,7 +209,7 @@ class ClassificationResource(ModelResource):
         else:
             return self.create_response(request, { 'success': False }, HttpUnauthorized)
 
-class ClassificationResource(ModelResource):
+class ClassificationCategoryResource(ModelResource):
     class Meta:
         queryset = ClassificationCategory.objects.all()
         resource_name = 'classificationcategory'

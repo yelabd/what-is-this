@@ -26,9 +26,11 @@ class Classification(models.Model):
 
     def to_dict(classification):
         ret = model_to_dict(classification)
+        ret['id'] = classification.id
         ret['photo'] = settings.MEDIA_URL + classification.photo.__str__()
         ret['category'] = classification.category.to_dict()
-        ret['result'] = list(ClassificationResult.objects.filter(classification=classification.id).values())
+        ret['result'] = list(ClassificationResult.objects.filter(
+            classification=classification.id).values('value', 'confidence'))
         ret['user_id'] = ret['user']
         del ret['user']
         return ret

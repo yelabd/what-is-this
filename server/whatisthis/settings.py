@@ -130,4 +130,4 @@ MEDIA_ROOT = '/Users/ajbienz/cs252/what-is-this/server/img'
 MEDIA_URL = '/media/'
 
 #ML
-ML_ROOT = '/mnt/classifer/ml/'
+ML_ROOT = '/Users/ajbienz/cs252/what-is-this/server/whatisthis/ml/'
