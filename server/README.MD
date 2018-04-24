@@ -121,18 +121,35 @@ Note: all URLs **must** have a trailing slash.
   },
   "objects": [
     {
-      "confidence": "100%",
-      "id": 3,
-      "photo": "/media/img/3.jpeg",
-      "resource_uri": "/api/classification/3/",
-      "result": "ur mom lol"
-    },
-    {
-      "confidence": "0% not at all",
-      "id": 8,
-      "photo": "/media/img/8.jpeg",
-      "resource_uri": "/api/classification/8/",
-      "result": "i have no clue"
+      "id": 13,
+      "category": {
+        "id": 1,
+        "value": "Flowers"
+      },
+      "photo": "/media/13.jpeg",
+      "result": [
+        {
+          "value": "daisy",
+          "confidence": "0.9926299"
+        },
+        {
+          "value": "tulips",
+          "confidence": "0.002786922"
+        },
+        {
+          "value": "sunflowers",
+          "confidence": "0.0027608534"
+        },
+        {
+          "value": "dandelion",
+          "confidence": "0.0016336078"
+        },
+        {
+          "value": "roses",
+          "confidence": "0.00018868537"
+        }
+      ],
+      "user_id": 1
     }]
 }`
 * Failure response:
@@ -150,12 +167,32 @@ Note: all URLs **must** have a trailing slash.
         * Note: auth string is **NOT** base64 encoded like basic authorization -- just plaintext in the format above
 * Successful response:
 `{
-  "confidence": "0% not at all",
-  "id": 22,
-  "photo": "/media/22.jpeg",
-  "resource_uri": "/api/classification/22/",
-  "result": "i have no clue",
-  "user_id": 6
+  "id": 18,
+  "photo": "/media/18_SDiErgs.jpeg",
+  "resource_uri": "/api/classification/18/",
+  "user_id": 1,
+  "result": [
+    {
+      "value": "daisy",
+      "confidence": "0.9926299"
+    },
+    {
+      "value": "tulips",
+      "confidence": "0.002786922"
+    },
+    {
+      "value": "sunflowers",
+      "confidence": "0.0027608534"
+    },
+    {
+      "value": "dandelion",
+      "confidence": "0.0016336078"
+    },
+    {
+      "value": "roses",
+      "confidence": "0.00018868537"
+    }
+  ]
 }`
 * Failure response:
 `{
@@ -173,19 +210,36 @@ Note: all URLs **must** have a trailing slash.
 * Successful response:
 `{
   "objects": [
-    {
-      "confidence": "0% not at all",
-      "id": 30,
-      "photo": "30.jpeg",
-      "result": "i have no clue",
-      "user_id": 6
-    },
-    {
-      "confidence": "0% not at all",
-      "id": 31,
-      "photo": "31.jpeg",
-      "result": "i have no clue",
-      "user_id": 6
+        {
+      "category": {
+        "id": 1,
+        "value": "Flowers"
+      },
+      "id": 19,
+      "photo": "/media/19_UUavy9c.jpeg",
+      "result": [
+        {
+          "confidence": "0.9926299",
+          "value": "daisy"
+        },
+        {
+          "confidence": "0.002786922",
+          "value": "tulips"
+        },
+        {
+          "confidence": "0.0027608534",
+          "value": "sunflowers"
+        },
+        {
+          "confidence": "0.0016336078",
+          "value": "dandelion"
+        },
+        {
+          "confidence": "0.00018868537",
+          "value": "roses"
+        }
+      ],
+      "user_id": 1
     }],
   "success": true
 }`
@@ -209,14 +263,38 @@ Note: all URLs **must** have a trailing slash.
 * Successful response:
 `{
   "classification": {
-    "confidence": "0% not at all",
-    "id": 34,
-    "photo": "/media/34.jpeg",
-    "result": "i have no clue",
-    "user_id": 6
+    "category": {
+      "id": 1,
+      "value": "Flowers"
+    },
+    "id": 20,
+    "photo": "/media/20_DCBd1QU.jpeg",
+    "result": [
+      {
+        "confidence": "0.9926299",
+        "value": "daisy"
+      },
+      {
+        "confidence": "0.002786922",
+        "value": "tulips"
+      },
+      {
+        "confidence": "0.0027608534",
+        "value": "sunflowers"
+      },
+      {
+        "confidence": "0.0016336078",
+        "value": "dandelion"
+      },
+      {
+        "confidence": "0.00018868537",
+        "value": "roses"
+      }
+    ],
+    "user_id": 1
   },
   "success": true
-}`
+}
 * Failure response:
 `{
     "reason": "...",
