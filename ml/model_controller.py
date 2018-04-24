@@ -63,8 +63,8 @@ def load_labels(label_file):
 #   -image_path: Path of image
 #   -model_type: 0=flowers
 def classify_image(image_path, model_type):
-    graph_path = "/tmp/output_graph.pb"
-    label_path = "/tmp/output_labels.txt"
+    graph_path = "models/output_graph.pb"
+    label_path = "models/output_labels.txt"
     input_height = 299
     input_width = 299
     input_mean = 0
@@ -73,8 +73,8 @@ def classify_image(image_path, model_type):
     output_layer = "InceptionV3/Predictions/Reshape_1"
 
     if model_type == 0:
-        graph_path = "/tmp/output_graph.pb"
-        label_path = "/tmp/output_labels.txt"
+        graph_path = "models/output_graph.pb"
+        label_path = "models/output_labels.txt"
         input_layer = "Placeholder"
         output_layer = "final_result"
 
@@ -105,7 +105,7 @@ def classify_image(image_path, model_type):
 
     for i in top_k:
         pairs[labels[i]] = results[i]
-
+    
 if __name__ == "__main__":
     classify_image("flowers/test1.jpg",0)
 
