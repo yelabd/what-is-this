@@ -105,7 +105,9 @@ def classify_image(image_path, model_type):
 
     for i in top_k:
         pairs[labels[i]] = results[i]
-    
+
+    return pairs
+
 if __name__ == "__main__":
     classify_image("flowers/test1.jpg",0)
 
