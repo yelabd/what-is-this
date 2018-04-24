@@ -7,6 +7,9 @@ import argparse
 import numpy as np
 import tensorflow as tf
 
+#Call classify_images (funtion description below)
+#Note: All functions(except main) and libraries required
+
 def load_graph(model_file):
   graph = tf.Graph()
   graph_def = tf.GraphDef()
@@ -55,7 +58,10 @@ def load_labels(label_file):
     label.append(l.rstrip())
   return label
 
-
+#Function to call
+#Params: 
+#   -image_path: Path of image
+#   -model_type: 0=flowers
 def classify_image(image_path, model_type):
     graph_path = "/tmp/output_graph.pb"
     label_path = "/tmp/output_labels.txt"
@@ -94,8 +100,11 @@ def classify_image(image_path, model_type):
 
     top_k = results.argsort()[-5:][::-1]
     labels = load_labels(label_path)
+
+    pairs = {}
+
     for i in top_k:
-        print(labels[i], results[i])
+        pairs[labels[i]] = results[i]
 
 if __name__ == "__main__":
     classify_image("flowers/test1.jpg",0)
