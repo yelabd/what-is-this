@@ -120,13 +120,14 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
 
-
 #MEDIA
-MEDIA_ROOT = '/mnt/img'
+MEDIA_ROOT = '/Users/ajbienz/cs252/what-is-this/server/img'
 MEDIA_URL = '/media/'
+
+#ML
+ML_ROOT = '/mnt/classifer/ml/'
