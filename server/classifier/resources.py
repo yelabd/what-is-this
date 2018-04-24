@@ -7,6 +7,7 @@ from django.conf.urls import url
 from django.http import HttpResponse
 
 from tastypie import fields
+from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.authentication import ApiKeyAuthentication
 from tastypie.http import HttpUnauthorized, HttpForbidden
 from tastypie.resources import ModelResource
@@ -14,8 +15,10 @@ from tastypie.utils import trailing_slash
 from tastypie.models import ApiKey
 
 from classifier.authorization import UserOnlyAuthorization, ClassificationOnlyAuthorization
-from classifier.models import Classification
+from classifier.models import Classification, ClassificationCategory, ClassificationResult
 from classifier.models import User
+
+from whatisthis.ml.model_controller import classify_image
 
 class UserResource(ModelResource):
     class Meta:
@@ -146,6 +149,7 @@ class ClassificationResource(ModelResource):
 
         data = self.deserialize(request, request.body, format = request.META.get('CONTENT_TYPE', 'application/json'))
 
+        category_id = data.get('category_id', '')
         b64 = data.get('photo', '')
 
         self.is_authenticated(request)
@@ -153,11 +157,28 @@ class ClassificationResource(ModelResource):
             
             format, imgstr = b64.split(';base64,') 
             ext = format.split('/')[-1] 
-            c = Classification.objects.create(result="i have no clue", confidence="0% not at all", user=request.user)
+            
+            category = ClassificationCategory.objects.get(pk=1)
+            c = Classification.objects.create(category=category, user=request.user)
             c.save()
             photo = ContentFile(base64.b64decode(imgstr), name= str(c.id) + '.' + ext)
             c.photo = photo
             c.save()
+
+            x = classify_image(c.photo.path, 0)
+            for value, confidence in x.items():
+                result = ClassificationResult.objects.create(value=value, confidence=confidence,
+                    classification=c)
+                result.save()
+            
             return self.create_response(request, { 'success': True , 'classification': c.to_dict() })
         else:
             return self.create_response(request, { 'success': False }, HttpUnauthorized)
+
+class ClassificationResource(ModelResource):
+    class Meta:
+        queryset = ClassificationCategory.objects.all()
+        resource_name = 'classificationcategory'
+        authentication = ApiKeyAuthentication()
+        authorization = ReadOnlyAuthorization()
+

@@ -20,15 +20,29 @@ class User(AbstractUser):
         return ret
 
 class Classification(models.Model):
-    result = models.CharField(max_length=100)
-    confidence = models.CharField(max_length=100)
-    photo = models.FileField(upload_to='')
+    category = models.ForeignKey('ClassificationCategory', on_delete=models.CASCADE)
     user = models.ForeignKey('User', on_delete=models.CASCADE)
+    photo = models.FileField(upload_to='')
 
     def to_dict(classification):
         ret = model_to_dict(classification)
         ret['photo'] = settings.MEDIA_URL + classification.photo.__str__()
+        ret['category'] = classification.category.to_dict()
+        ret['result'] = list(ClassificationResult.objects.filter(classification=classification.id).values())
         ret['user_id'] = ret['user']
         del ret['user']
         return ret
+
+class ClassificationResult(models.Model):
+    classification = models.ForeignKey('Classification', on_delete=models.CASCADE)
+    value = models.CharField(max_length=100)
+    confidence=models.CharField(max_length=100)
+
+    def to_dict(result):
+        return model_to_dict(result)
         
+class ClassificationCategory(models.Model):
+    value = models.CharField(max_length=100)
+    
+    def to_dict(category):
+        return model_to_dict(category)
