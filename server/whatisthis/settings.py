@@ -130,4 +130,4 @@ MEDIA_ROOT = '/mnt/classifier/img'
 MEDIA_URL = '/media/'
 
 #ML
-ML_ROOT = '/mtn/classifier/ml/'
+ML_ROOT = '/mnt/classifier/ml/'
