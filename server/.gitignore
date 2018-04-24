@@ -2,6 +2,8 @@
 ./whatisthis/__pycache__/
 ./classifier/__pycache__/*
 ./whatisthis/__pycache__/*
+./whatisthis/ml
+./whatisthis/ml/*
 ./img/
 ./img/*
 Pipfile.lock
