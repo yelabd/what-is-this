@@ -8,6 +8,8 @@ django = "*"
 django-tastypie = "*"
 pillow = "*"
 "psycopg2-binary" = "*"
+tensorflow = "*"
+numpy = "*"
 
 [dev-packages]
 
