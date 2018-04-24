@@ -145,7 +145,7 @@ class ClassificationResource(ModelResource):
 
     def get_list(self, bundle, **kwargs):
         resp = super(ClassificationResource, self).get_list(bundle, **kwargs)
-        data = json.loads(resp.content)
+        data = json.loads(resp.content.decode('utf-8'))
         #data = {}
 
         l = list()
@@ -159,7 +159,7 @@ class ClassificationResource(ModelResource):
     def get_detail(self, request, **kwargs):
         resp = super(ClassificationResource, self).get_detail(request, **kwargs)
 
-        data = json.loads(resp.content)
+        data = json.loads(resp.content.decode('utf-8'))
 
         print(kwargs)
         data['result'] = list(ClassificationResult.objects.filter(
