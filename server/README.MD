@@ -258,6 +258,7 @@ Note: all URLs **must** have a trailing slash.
         * Note: auth string is **NOT** base64 encoded like basic authorization -- just plaintext in the format above
 * Parameters: passed in the request body as JSON. Any image format should be fine.
     `{
+    "category_id": 0,
     "photo": "data:image/jpeg;base64,[base64datahere]"
     }`
 * Successful response:
@@ -295,6 +296,39 @@ Note: all URLs **must** have a trailing slash.
   },
   "success": true
 }
+* Failure response:
+`{
+    "reason": "...",
+    "success": false
+}`
+
+### Get available Classification Categories
+* Endpoint: `/api/user//classification/create/`
+* Method: POST
+* Headers:
+    * `Content-Type: application/json`
+    * `Authorization: ApiKey username:api_key`
+        * Note: auth string is **NOT** base64 encoded like basic authorization -- just plaintext in the format above
+* * URL Params:
+    * `limit`: optional, number of items to return. Default = 20.
+    * `offset`: optional, index from which to start listing objects. Default = 0. Useful for paging through results.
+* Successful response:
+`{
+  "meta": {
+    "limit": 20,
+    "next": null,
+    "offset": 0,
+    "previous": null,
+    "total_count": 1
+  },
+  "objects": [
+    {
+      "id": 1,
+      "resource_uri": "/api/classification_category/1/",
+      "value": "Flowers"
+    }
+  ]
+}`
 * Failure response:
 `{
     "reason": "...",
