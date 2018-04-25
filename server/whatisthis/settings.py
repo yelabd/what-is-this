@@ -11,10 +11,10 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+import sys
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
@@ -130,4 +130,6 @@ MEDIA_ROOT = '/mnt/classifier/img'
 MEDIA_URL = '/media/'
 
 #ML
-ML_ROOT = '/mnt/classifier/what-is/this/ml/'
+ML_ROOT = '/mnt/classifier/what-is-this/ml/'
+sys.path.insert(0, ML_ROOT)
+

@@ -20,7 +20,7 @@ from classifier.authorization import UserOnlyAuthorization, ClassificationOnlyAu
 from classifier.models import Classification, ClassificationCategory, ClassificationResult
 from classifier.models import User
 
-from whatisthis.ml.model_controller import classify_image
+from model_controller import classify_image
 
 class UserResource(ModelResource):
     class Meta:
