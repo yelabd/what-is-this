@@ -192,14 +192,14 @@ class ClassificationResource(ModelResource):
             format, imgstr = b64.split(';base64,') 
             ext = format.split('/')[-1] 
             
-            category = ClassificationCategory.objects.get(pk=1)
+            category = ClassificationCategory.objects.get(pk=category_id)
             c = Classification.objects.create(category=category, user=request.user)
             c.save()
             photo = ContentFile(base64.b64decode(imgstr), name= str(c.id) + '.' + ext)
             c.photo = photo
             c.save()
 
-            x = classify_image(c.photo.path, 0, settings.ML_ROOT)
+            x = classify_image(c.photo.path, category_id-1, settings.ML_ROOT)
             for value, confidence in x.items():
                 result = ClassificationResult.objects.create(value=value, confidence=confidence,
                     classification=c)
@@ -212,7 +212,7 @@ class ClassificationResource(ModelResource):
 class ClassificationCategoryResource(ModelResource):
     class Meta:
         queryset = ClassificationCategory.objects.all()
-        resource_name = 'classificationcategory'
+        resource_name = 'classification_category'
         authentication = ApiKeyAuthentication()
         authorization = ReadOnlyAuthorization()
 
