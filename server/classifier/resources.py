@@ -199,7 +199,7 @@ class ClassificationResource(ModelResource):
             c.photo = photo
             c.save()
 
-            x = classify_image(c.photo.path, category_id-1, settings.ML_ROOT)
+            x = classify_image(c.photo.path, category_id, settings.ML_ROOT)
             for value, confidence in x.items():
                 result = ClassificationResult.objects.create(value=value, confidence=confidence,
                     classification=c)
