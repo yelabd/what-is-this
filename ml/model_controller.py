@@ -61,7 +61,8 @@ def load_labels(label_file):
 #Function to call
 #Params: 
 #   -image_path: Path of image
-#   -model_type: 0=flowers
+#   -model_type: 1=flowers
+#Returns dictionary with Key=Type, Value=Probability
 def classify_image(image_path, model_type):
     graph_path = "models/output_graph.pb"
     label_path = "models/output_labels.txt"
@@ -72,7 +73,7 @@ def classify_image(image_path, model_type):
     input_layer = "input"
     output_layer = "InceptionV3/Predictions/Reshape_1"
 
-    if model_type == 0:
+    if model_type == 1:
         graph_path = "models/output_graph.pb"
         label_path = "models/output_labels.txt"
         input_layer = "Placeholder"
