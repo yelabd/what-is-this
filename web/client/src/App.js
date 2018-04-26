@@ -9,6 +9,7 @@ import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import Dropzone from 'react-dropzone';
 import AppBar from 'material-ui/AppBar';
 import DropDownMenu from 'material-ui/DropDownMenu';
+import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 import FileBase64 from 'react-file-base64';
 import Base64 from 'base-64';
@@ -21,7 +22,7 @@ class App extends Component {
         this.baseIP = "http://167.99.228.85";
         this.basePort= "3000";
            this.state = {
-            loggedIn : false,
+            loggedIn : true,
             username : '',
             password : '',
             api_key  : '',
@@ -38,9 +39,14 @@ class App extends Component {
            this.handleRegister = this.handleRegister.bind(this);
            this.handlePostClassification = this.handlePostClassification.bind(this);
            this.handleLogout = this.handleLogout.bind(this);
-           this.handleListAllClassifications = this.handleListAllClassifications.bind(this);
            this.handleListUserClassifications = this.handleListUserClassifications.bind(this);
            this.handleClassificationInfo = this.handleClassificationInfo.bind(this);
+           this.startOver = this.startOver.bind(this);
+           this.renderCategories = this.renderCategories.bind(this);
+  }
+
+  renderCategories(){
+
   }
 
 
@@ -66,7 +72,7 @@ class App extends Component {
                 }
             })
             .catch(function(error) {
-              self.setState({ errors : "Something went wrong. Please try again." });
+
             });
 
 
@@ -86,9 +92,6 @@ class App extends Component {
    handleListUserClassifications(event){
 
    }
-   handleListAllClassifications(event){
-
-   }
 
    onDrop(files) {
         this.setState({
@@ -106,7 +109,7 @@ class App extends Component {
         'Authorization': 'ApiKey ' + this.username + ':' + this.api_key
       }
       var parameters = {
-        "photo" : "data:"+this.uploadedFile +";" + "base-64" + "," + Base64.encode(this.uploadedFile)
+        "photo" : "data:"+this.uploadedFile +";base-64," + Base64.encode(this.uploadedFile)
       }
        axios({ 
                 url: apiBaseUrl,
@@ -130,8 +133,15 @@ class App extends Component {
             .catch(function(error) {
               self.setState({ errors : "Something went wrong. Please try again." });
             });
-
+        ReactDOM.render(<App />, document.getElementById('root'));
     }
+  }
+
+  startOver(event){
+    this.setState({
+      uploadedFile : undefined
+    });
+    ReactDOM.render(<App />, document.getElementById('root'));
   }
 
   handleLogin(event){
@@ -199,6 +209,27 @@ class App extends Component {
     ReactDOM.render(<App />, document.getElementById('root'));
   }
 
+  renderPicture(){
+    if(this.state.uploadedFile === undefined){
+      return (
+        <a className="center">
+            <Dropzone
+              multiple={false}
+              accept="image/*"
+              onDrop={this.onDrop}>
+              <p>Drop an image or click to select an image to classify.</p>
+            </Dropzone> 
+            </a>
+        );
+    }else{
+      return (
+         <a className="center">
+          <p>Uploaded {this.state.uploadedFile.name} </p>
+         </a>
+      )
+    }
+  }
+
   renderLoggedIn(){
     return (
       <div>
@@ -207,22 +238,25 @@ class App extends Component {
             <RaisedButton label="Logout" onClick={(event) => this.handleLogout(event)}/>
         }
         iconElementLeft={
-          <DropDownMenu menuItems={ 
-            <MenuItem primaryText='New Classification' onClick={(event) => this.renderLoggedIn(event)}/> ,
-            <MenuItem primaryText='My Classifications' onClick={(event) => this.handleListUserClassifications(event)}/> ,
-            <MenuItem primaryText='All Classifications' onClick={(event) => this.handleListAllClassifications(event)}/>
-         }/>
+          <DropDownMenu text="Options">
+              <MenuItem primaryText='New Classification' value="New Classification" onClick={(event) => this.startOver(event)}/>
+              <MenuItem primaryText='My Classifications' value="My Classifications" onClick={(event) => this.handleListUserClassifications(event)}/>
+         </DropDownMenu>
       }/>
           <div className="App">
             <header className="App-header">
               <h1 className="App-title">Welcome {this.state.username}! Classify an image below!</h1>
             </header>
-            <Dropzone
-              multiple={false}
-              accept="image/*"
-              onDrop={this.onDrop}>
-              <p>Drop an image or click to select a file to upload.</p>
-            </Dropzone> 
+            <br/>
+            <br/>
+              {this.renderPicture()}
+            <br/>
+            <SelectField hintText="What category does your image fall under?">
+              <MenuItem primaryText='New Classification' value="New Classification" onClick={(event) => this.renderLoggedIn(event)}/>
+              <MenuItem primaryText='My Classifications' value="My Classifications" onClick={(event) => this.handleListUserClassifications(event)}/>
+            </SelectField>
+            <br/>
+
               <RaisedButton label="Classify!" primary={true} onClick={(event) => this.handlePostClassification(event)}/>
           </div>
           </MuiThemeProvider>
