@@ -63,9 +63,9 @@ def load_labels(label_file):
 #   -image_path: Path of image
 #   -model_type: 1=flowers
 #Returns dictionary with Key=Type, Value=Probability
-def classify_image(image_path, model_type):
-    graph_path = "models/output_graph.pb"
-    label_path = "models/output_labels.txt"
+def classify_image(image_path, model_type, ml_root):
+    graph_path = ml_root + "models/output_graph.pb"
+    label_path = ml_root + "models/output_labels.txt"
     input_height = 299
     input_width = 299
     input_mean = 0
@@ -74,8 +74,8 @@ def classify_image(image_path, model_type):
     output_layer = "InceptionV3/Predictions/Reshape_1"
 
     if model_type == 1:
-        graph_path = "models/output_graph.pb"
-        label_path = "models/output_labels.txt"
+        graph_path = ml_root + "models/output_graph.pb"
+        label_path = ml_root + "models/output_labels.txt"
         input_layer = "Placeholder"
         output_layer = "final_result"
     elif model_type == 2:
