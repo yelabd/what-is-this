@@ -13,6 +13,8 @@ import SelectField from 'material-ui/SelectField';
 import MenuItem from 'material-ui/MenuItem';
 import FileBase64 from 'react-file-base64';
 import Base64 from 'base-64';
+import ReactFileReader from 'react-file-reader';
+
 require('axios-debug')(axios);
 
 class App extends Component {
@@ -29,6 +31,7 @@ class App extends Component {
             user_id  : '',
             category_id: '',
             errors : '',
+            results : '',
            }
            
 
@@ -37,7 +40,6 @@ class App extends Component {
            this.renderDefault = this.renderDefault.bind(this);
 
            //event handlers
-           this.onDrop = this.onDrop.bind(this);
            this.handleLogin = this.handleLogin.bind(this);
            this.handleRegister = this.handleRegister.bind(this);
            this.handlePostClassification = this.handlePostClassification.bind(this);
@@ -47,6 +49,7 @@ class App extends Component {
            this.startOver = this.startOver.bind(this);
            this.renderCategories = this.renderCategories.bind(this);
            this.handleCategoryChange = this.handleCategoryChange.bind(this);
+           this.handleFiles = this.handleFiles.bind(this);
   }
 
   handleCategoryChange = (event, index, value) => this.setState({category_id: value});
@@ -122,6 +125,7 @@ class App extends Component {
       user_id : '',
       errors : '',
       category_id: '',
+      results : '',
     });
    }
 
@@ -133,51 +137,43 @@ class App extends Component {
 
    }
 
-   onDrop(files) {
+   handleFiles(files) {
         this.setState({
-            uploadedFile: files[0]
+            uploadedFile: files.base64
         });
     }
 
   handlePostClassification(event){
-
-    const file = this.state.uploadedFile;
+    const file = this.state.uploadedFile[0];
     var apiBaseUrl = this.baseIP + ":" + this.basePort + "/api/classification/create/";
     var self = this;
     if(this.state.loggedIn === true){
       var headers = {
         'Content-Type' : 'application/json',
-        'Authorization': 'ApiKey ' + this.state.username + ':' + this.state.api_key
+        'Authorization': 'ApiKey ' + "aj1" + ':' + "3a1b5e4458a1d9d637b04a711326ac3b3bc6b8de"
       }
       var parameters = {
-        "photo" : "data:"+file.type +";base-64," + Base64.encode(file),
-        "category_id": this.state.category_id
+        "photo" : file,
+        "category_id": parseInt(this.state.category_id, 10)
       }
        axios({ 
                 url: apiBaseUrl,
                 method:'post',
-                headers : {
-                   "Content-Type" : "application/json"
-                },
+                headers : headers,
                 data : parameters
             })
             .then((response) => {
-                if(response.data.success !== "false"){
-                  this.setState({ 
-                    loggedIn : true,
-                    api_key : response.data.api_key,
-                    username : response.data.username,
-                  });
-                }else{
-                  this.setState({ errors : response.data.reason });
-                }
+                  console.log("GOING IN HERE");
+                  for(var x = 0; x < response.data.result.length; x++){
+                    this.setState({results: this.state.results + "Your image is" + response.data.result[x].value + "with a "+response.data.result[x].confidence + "% confidence. " });
+                  }
+                  ReactDOM.render(<App />, document.getElementById('root'));
             })
             .catch(function(error) {
-              self.setState({ errors : "Something went wrong. Please try again." });
+              self.setState({ errors : "Something went wrong." });
             });
         }
         else{
-          console.log("NOPE");
           this.setState({errors: "Please choose a category and/or image!"});
         }
         ReactDOM.render(<App />, document.getElementById('root'));
@@ -206,7 +202,7 @@ class App extends Component {
                 data : parameters
             })
             .then((response) => {
-                if(response.data.success !== "false"){
+                if(response.data.success !== false){
                   this.setState({ 
                     loggedIn : true,
                     api_key : response.data.api_key,
@@ -239,7 +235,7 @@ class App extends Component {
                 data : parameters
             })
             .then((response) => {
-                if(response.data.success !== "false"){
+                if(response.data.success !== false){
                   this.setState({ 
                     loggedIn : true,
                     api_key : response.data.api_key,
@@ -259,12 +255,9 @@ class App extends Component {
     if(this.state.uploadedFile === undefined){
       return (
         <a className="center">
-            <Dropzone
-              multiple={false}
-              accept="image/*"
-              onDrop={this.onDrop}>
-              <p>Drop an image or click to select an image to classify.</p>
-            </Dropzone> 
+            <ReactFileReader fileTypes={[".png",".jpeg",".jpg",]} base64={true} multipleFiles={true} handleFiles={this.handleFiles}>
+              <RaisedButton label="Upload" primary={true} onClick={(files) => this.handleFiles(files)}/>
+            </ReactFileReader>
             </a>
         );
     }else{
@@ -306,7 +299,7 @@ class App extends Component {
               <RaisedButton label="Classify!" primary={true} onClick={(event) => this.handlePostClassification(event)}/>
               <br/>
               <br/>
-              <span className="label label-danger">{this.state.errors}</span>
+              <span className="label label-danger">{this.state.results}</span>
           </div>
           </MuiThemeProvider>
       </div>
@@ -344,7 +337,7 @@ class App extends Component {
         </MuiThemeProvider>
         <br/>
         <br/>
-        <span className="label label-danger">{this.state.errors}</span>
+        <span className="label">{this.state.results}</span>
       </div>
     );
   }
