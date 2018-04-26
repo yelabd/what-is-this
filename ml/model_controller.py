@@ -61,7 +61,7 @@ def load_labels(label_file):
 #Function to call
 #Params: 
 #   -image_path: Path of image
-#   -model_type: 1=flowers
+#   -model_type: 1=flowers 2=cats_v_dogs
 #Returns dictionary with Key=Type, Value=Probability
 def classify_image(image_path, model_type, ml_root):
     graph_path = ml_root + "models/output_graph.pb"
@@ -79,8 +79,8 @@ def classify_image(image_path, model_type, ml_root):
         input_layer = "Placeholder"
         output_layer = "final_result"
     elif model_type == 2:
-        graph_path = "/tmp/output_graph.pb"
-        label_path = "/tmp/output_labels.txt"
+        graph_path = "models/cat_dog/output_graph.pb"
+        label_path = "models/cat_dog/output_labels.txt"
         input_layer = "Placeholder"
         output_layer = "final_result"
 
