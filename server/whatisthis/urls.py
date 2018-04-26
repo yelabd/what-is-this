@@ -19,16 +19,17 @@ from django.conf.urls import url, include
 from django.urls import re_path
 from django.views.static import serve
 
-from classifier.resources import UserResource
-from classifier.resources import ClassificationResource
+from classifier.resources import UserResource, ClassificationResource, ClassificationCategoryResource
 
 user_resource = UserResource()
 classification_resource = ClassificationResource()
+classification_category_resource = ClassificationCategoryResource()
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/', include(user_resource.urls)),
     url(r'^api/', include(classification_resource.urls)),
+    url(r'^api/', include(classification_category_resource.urls)),
     re_path(r'^media/(?P<path>.*)$', serve, {
             'document_root': settings.MEDIA_ROOT,
         }),

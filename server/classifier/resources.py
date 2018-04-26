@@ -1,12 +1,15 @@
 import base64
+import json
 
 from django.core import serializers
 from django.core.files.base import ContentFile
 from django.contrib.auth import authenticate, login, logout
+from django.conf import settings
 from django.conf.urls import url
 from django.http import HttpResponse
 
 from tastypie import fields
+from tastypie.authorization import ReadOnlyAuthorization
 from tastypie.authentication import ApiKeyAuthentication
 from tastypie.http import HttpUnauthorized, HttpForbidden
 from tastypie.resources import ModelResource
@@ -14,8 +17,10 @@ from tastypie.utils import trailing_slash
 from tastypie.models import ApiKey
 
 from classifier.authorization import UserOnlyAuthorization, ClassificationOnlyAuthorization
-from classifier.models import Classification
+from classifier.models import Classification, ClassificationCategory, ClassificationResult
 from classifier.models import User
+
+from model_controller import classify_image
 
 class UserResource(ModelResource):
     class Meta:
@@ -77,6 +82,17 @@ class UserResource(ModelResource):
         username = data.get('username', '')
         password = data.get('password', '')
 
+        if len(username) == 0:
+            return self.create_response(request, {
+                'success': False,
+                'reason': 'Username must not be empty',
+                }, HttpForbidden )
+        elif len(password) < 6:
+            return self.create_response(request, {
+            'success': False,
+            'reason': 'Password must be at least 6 characters',
+            }, HttpForbidden )
+
         try:
             User.objects.get(username=username)
         except User.DoesNotExist:
@@ -121,7 +137,10 @@ class UserResource(ModelResource):
         print(kwargs['userid'])
         if  request.user and request.user.is_authenticated:
             qs = Classification.objects.filter(user=User.objects.get(id=kwargs['userid']))
-            return self.create_response(request, { 'success': True, 'objects': list(qs.values())})
+            l = list()
+            for c in qs:
+                l.append(c.to_dict())
+            return self.create_response(request, { 'success': True, 'objects': l })
         else:
             return self.create_response(request, { 'success': False }, HttpUnauthorized)  
 
@@ -131,6 +150,35 @@ class ClassificationResource(ModelResource):
         resource_name = 'classification'
         authentication = ApiKeyAuthentication()
         authorization = ClassificationOnlyAuthorization()
+
+    def obj_get_list(self, bundle, **kwargs):
+        return []
+
+    def get_list(self, bundle, **kwargs):
+        resp = super(ClassificationResource, self).get_list(bundle, **kwargs)
+        data = json.loads(resp.content.decode('utf-8'))
+        #data = {}
+
+        l = list()
+        for c in Classification.objects.all():
+            l.append(c.to_dict())
+        data['objects'] = l
+
+        data = json.dumps(data)
+        return HttpResponse(data, content_type='application/json', status=200)
+
+    def get_detail(self, request, **kwargs):
+        resp = super(ClassificationResource, self).get_detail(request, **kwargs)
+
+        data = json.loads(resp.content.decode('utf-8'))
+
+        print(kwargs)
+        data['result'] = list(ClassificationResult.objects.filter(
+            classification=kwargs['pk']).values('value', 'confidence'))
+
+        data = json.dumps(data)
+
+        return HttpResponse(data, content_type='application/json', status=200)
 
     def dehydrate(self, bundle):
         bundle.data['user_id'] = bundle.obj.user_id
@@ -146,6 +194,7 @@ class ClassificationResource(ModelResource):
 
         data = self.deserialize(request, request.body, format = request.META.get('CONTENT_TYPE', 'application/json'))
 
+        category_id = data.get('category_id', '')
         b64 = data.get('photo', '')
 
         self.is_authenticated(request)
@@ -153,11 +202,28 @@ class ClassificationResource(ModelResource):
             
             format, imgstr = b64.split(';base64,') 
             ext = format.split('/')[-1] 
-            c = Classification.objects.create(result="i have no clue", confidence="0% not at all", user=request.user)
+            
+            category = ClassificationCategory.objects.get(pk=category_id)
+            c = Classification.objects.create(category=category, user=request.user)
             c.save()
             photo = ContentFile(base64.b64decode(imgstr), name= str(c.id) + '.' + ext)
             c.photo = photo
             c.save()
+
+            x = classify_image(c.photo.path, category_id, settings.ML_ROOT)
+            for value, confidence in x.items():
+                result = ClassificationResult.objects.create(value=value, confidence=confidence,
+                    classification=c)
+                result.save()
+            
             return self.create_response(request, { 'success': True , 'classification': c.to_dict() })
         else:
             return self.create_response(request, { 'success': False }, HttpUnauthorized)
+
+class ClassificationCategoryResource(ModelResource):
+    class Meta:
+        queryset = ClassificationCategory.objects.all()
+        resource_name = 'classification_category'
+        authentication = ApiKeyAuthentication()
+        authorization = ReadOnlyAuthorization()
+
