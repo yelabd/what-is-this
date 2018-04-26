@@ -29,6 +29,18 @@
   font-size: large;
 }
 
+.navbar .container-fluid>.navbar-header {
+  float: left;
+  margin-right: 10px;
+}
+.navbar .navbar-nav {
+  float: left;
+  margin: 5px;
+}
+.nav>li {
+  float: left;
+}
+
 @keyframes App-logo-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
