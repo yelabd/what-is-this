@@ -20,14 +20,17 @@ class App extends Component {
   constructor(props) {
         super(props);
         this.baseIP = "http://167.99.228.85";
-        this.basePort= "3000";
+        this.basePort= "8000";
            this.state = {
-            loggedIn : true,
+            loggedIn : false,
             username : '',
             password : '',
             api_key  : '',
+            user_id  : '',
+            category_id: '',
             errors : '',
            }
+           
 
            //render functions
            this.renderLoggedIn = this.renderLoggedIn.bind(this);
@@ -43,10 +46,46 @@ class App extends Component {
            this.handleClassificationInfo = this.handleClassificationInfo.bind(this);
            this.startOver = this.startOver.bind(this);
            this.renderCategories = this.renderCategories.bind(this);
+           this.handleCategoryChange = this.handleCategoryChange.bind(this);
   }
 
-  renderCategories(){
+  handleCategoryChange = (event, index, value) => this.setState({category_id: value});
 
+  renderCategories(){
+    console.log("Rendering Categories");
+    var apiBaseUrl = this.baseIP + ":" + this.basePort + "/api/classification_category/";
+    var self = this;
+    var headers={
+      'Content-Type' : 'application/json',
+      'Authorization': 'ApiKey ' + this.state.username + ':' + this.state.api_key
+    }
+    axios({ 
+                url: apiBaseUrl,
+                method:'get',
+                headers : headers,
+            })
+            .then((response) => {
+                if(response.data.success !== "false"){
+                  var items = [];
+                  var objects = response.data.objects;
+                  for(var i = 0; i < objects.length; i++){
+                    console.log(objects[i].value);
+                    items.push(
+                      <MenuItem primaryText={objects[i].value} key={objects[i].value} value={objects[i].value}/>
+                    );
+                  }
+                  return(items);
+                }else{
+                  return (
+                    <MenuItem primaryText="No categories available" value="0"/>
+                   );
+                }
+            })
+            .catch(function(error) {
+                return (
+                    <MenuItem primaryText="No categories available" value="0"/>
+                    );
+            });
   }
 
 
@@ -55,7 +94,7 @@ class App extends Component {
     var self = this;
     var headers={
       'Content-Type' : 'application/json',
-      'Authorization': 'ApiKey ' + this.username + ':' + this.api_key
+      'Authorization': 'ApiKey ' + this.state.username + ':' + this.state.api_key
     }
      axios({ 
                 url: apiBaseUrl,
@@ -68,11 +107,10 @@ class App extends Component {
                     loggedIn : false,
                   });
                 }else{
-                  this.setState({ errors : response.data.message });
+                  this.setState({ errors : response.data.reason });
                 }
             })
             .catch(function(error) {
-
             });
 
 
@@ -81,7 +119,9 @@ class App extends Component {
       username:'',
       password : '',
       api_key  : '',
+      user_id : '',
       errors : '',
+      category_id: '',
     });
    }
 
@@ -100,16 +140,18 @@ class App extends Component {
     }
 
   handlePostClassification(event){
-    const file = this.uploadedFile;
-    var apiBaseUrl = this.baseIP + ":" + this.basePort + "/api/user/classification/create/";
+
+    const file = this.state.uploadedFile;
+    var apiBaseUrl = this.baseIP + ":" + this.basePort + "/api/classification/create/";
     var self = this;
-    if(this.loggedIn === true){
+    if(this.state.loggedIn === true){
       var headers = {
         'Content-Type' : 'application/json',
-        'Authorization': 'ApiKey ' + this.username + ':' + this.api_key
+        'Authorization': 'ApiKey ' + this.state.username + ':' + this.state.api_key
       }
       var parameters = {
-        "photo" : "data:"+this.uploadedFile +";base-64," + Base64.encode(this.uploadedFile)
+        "photo" : "data:"+file.type +";base-64," + Base64.encode(file),
+        "category_id": this.state.category_id
       }
        axios({ 
                 url: apiBaseUrl,
@@ -127,14 +169,18 @@ class App extends Component {
                     username : response.data.username,
                   });
                 }else{
-                  this.setState({ errors : response.data.message });
+                  this.setState({ errors : response.data.reason });
                 }
             })
             .catch(function(error) {
               self.setState({ errors : "Something went wrong. Please try again." });
             });
+        }
+        else{
+          console.log("NOPE");
+          this.setState({errors: "Please choose a category and/or image!"});
+        }
         ReactDOM.render(<App />, document.getElementById('root'));
-    }
   }
 
   startOver(event){
@@ -164,14 +210,14 @@ class App extends Component {
                   this.setState({ 
                     loggedIn : true,
                     api_key : response.data.api_key,
-                    username : response.data.username,
+                    user_id : response.data.user.id,
                   });
                 }else{
                   this.setState({ errors : response.data.message });
                 }
             })
             .catch(function(error) {
-              self.setState({ errors : "Something went wrong. Please try again." });
+              self.setState({ errors : error.response.data.reason });
             });
     ReactDOM.render(<App />, document.getElementById('root'));
   }
@@ -197,14 +243,14 @@ class App extends Component {
                   this.setState({ 
                     loggedIn : true,
                     api_key : response.data.api_key,
-                    username : response.data.username,
+                    user_id : response.data.user.id,
                   });
                 }else{
                   this.setState({ errors : response.data.message });
                 }
             })
             .catch(function(error) {
-              self.setState({ errors : "Something went wrong. Please try again." });
+              self.setState({ errors : error.response.data.reason  });
             });
     ReactDOM.render(<App />, document.getElementById('root'));
   }
@@ -239,8 +285,8 @@ class App extends Component {
         }
         iconElementLeft={
           <DropDownMenu text="Options">
-              <MenuItem primaryText='New Classification' value="New Classification" onClick={(event) => this.startOver(event)}/>
-              <MenuItem primaryText='My Classifications' value="My Classifications" onClick={(event) => this.handleListUserClassifications(event)}/>
+              <MenuItem primaryText="New Classification" onClick={(event) => this.startOver(event)}/>
+              <MenuItem primaryText="My Classifications" onClick={(event) => this.handleListUserClassifications(event)}/>
          </DropDownMenu>
       }/>
           <div className="App">
@@ -251,13 +297,16 @@ class App extends Component {
             <br/>
               {this.renderPicture()}
             <br/>
-            <SelectField hintText="What category does your image fall under?">
-              <MenuItem primaryText='New Classification' value="New Classification" onClick={(event) => this.renderLoggedIn(event)}/>
-              <MenuItem primaryText='My Classifications' value="My Classifications" onClick={(event) => this.handleListUserClassifications(event)}/>
+            <SelectField required={true} value={this.state.value} hintText="What category does your image fall under?" onChange={this.handleCategoryChange}>
+              {this.renderCategories()}
+              <MenuItem value="2" primaryText="Dogs v. Cats" key="2"/>
+              <MenuItem value="1" primaryText="Flowers" key="1"/>
             </SelectField>
             <br/>
-
               <RaisedButton label="Classify!" primary={true} onClick={(event) => this.handlePostClassification(event)}/>
+              <br/>
+              <br/>
+              <span className="label label-danger">{this.state.errors}</span>
           </div>
           </MuiThemeProvider>
       </div>
