@@ -79,8 +79,8 @@ def classify_image(image_path, model_type, ml_root):
         input_layer = "Placeholder"
         output_layer = "final_result"
     elif model_type == 2:
-        graph_path = "models/cat_dog/output_graph.pb"
-        label_path = "models/cat_dog/output_labels.txt"
+        graph_path = ml_root + "models/cat_dog/output_graph.pb"
+        label_path = ml_root + "models/cat_dog/output_labels.txt"
         input_layer = "Placeholder"
         output_layer = "final_result"
 
@@ -116,6 +116,6 @@ def classify_image(image_path, model_type, ml_root):
     return pairs
 
 if __name__ == "__main__":
-    classify_image("catt1.jpg",2)
+    classify_image("catt1.jpg",2,"")
 
 
