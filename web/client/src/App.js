@@ -7,27 +7,18 @@ import TextField from 'material-ui/TextField';
 import RaisedButton from 'material-ui/RaisedButton';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
 import Dropzone from 'react-dropzone';
+import AppBar from 'material-ui/AppBar';
+import DropDownMenu from 'material-ui/DropDownMenu';
+import MenuItem from 'material-ui/MenuItem';
+require('axios-debug')(axios);
 
-//literally all this for navbar
-import {
-  Collapse,
-  Navbar,
-  NavbarToggler,
-  NavbarBrand,
-  Nav,
-  NavItem,
-  NavLink,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem } from 'reactstrap';
 
 class App extends Component {
 
   constructor(props) {
         super(props);
            this.state = {
-            loggedIn : true,
+            loggedIn : false,
             username : '',
             password : '',
             api_key  : '',
@@ -48,6 +39,28 @@ class App extends Component {
            this.handleListUserClassifications = this.handleListUserClassifications.bind(this);
            this.handleClassificationInfo = this.handleClassificationInfo.bind(this);
   }
+
+
+   handleLogout(event){
+    this.setState({
+      loggedIn:false,
+      username:'',
+      password : '',
+      api_key  : '',
+      errors : '',
+    });
+   }
+
+   handleClassificationInfo(event){
+
+   }
+
+   handleListUserClassifications(event){
+
+   }
+   handleListAllClassifications(event){
+
+   }
 
    onDrop(files) {
         this.setState({
@@ -99,51 +112,65 @@ class App extends Component {
   }
 
   handleRegister(event){
-    var apiBaseUrl = "http://167.99.228.85:8000/api/user/login/";
+    var apiBaseUrl = "http://167.99.228.85:8000/api/user/register/";
     var self = this;
     var parameters = {
       "username" : self.state.username,
       "password" : self.state.password
     }
   
-    const response = axios.post(apiBaseUrl, JSON.stringify(parameters), { headers: { 'Content-Type': 'application/json' } }).catch(function(error){
-      if(!error.status){
-            this.setState({errors : "Something went wrong. Please try again."});
-      }
-    });
-    console.log(response.data);
-    if(response.data !== undefined){
-      if(response.data.success !== "failure"){
-        this.setState({ errors : response.data.message });
-      }else{
-        this.setState({ 
-            loggedIn : true,
-            api_key : response.data.api_key,
-            username : response.data.username,
-        });
-      }
-    }
-    console.log(response.data);
+    axios({ 
+                url: apiBaseUrl,
+                method:'post',
+                headers : {
+                   "Content-Type" : "application/json"
+                },
+                data : parameters
+            })
+            .then((response) => {
+                if(response.data.success !== "failure"){
+                  this.setState({ 
+                    loggedIn : true,
+                    api_key : response.data.api_key,
+                    username : response.data.username,
+                  });
+                }else{
+                  this.setState({ errors : response.data.message });
+                }
+            })
+            .catch(function(error) {
+              self.setState({ errors : "Something went wrong. Please try again." });
+            });
     ReactDOM.render(<App />, document.getElementById('root'));
   }
 
   renderLoggedIn(){
     return (
       <div>
+      <MuiThemeProvider>   
+        <AppBar title="What is this?" iconElementRight={
+            <RaisedButton label="Logout" onClick={(event) => this.handleLogout(event)}/>
+        }
+        iconElementLeft={
+          <DropDownMenu menuItems={ 
+            <MenuItem primaryText='New Classification' onClick={(event) => this.renderLoggedIn(event)}/> ,
+            <MenuItem primaryText='My Classifications' onClick={(event) => this.handleListUserClassifications(event)}/> ,
+            <MenuItem primaryText='All Classifications' onClick={(event) => this.handleListAllClassifications(event)}/>
+         }/>
+      }/>
           <div className="App">
             <header className="App-header">
-              <h1 className="App-title">Welcome {this.state.username}! Upload a picture below!</h1>
+              <h1 className="App-title">Welcome {this.state.username}! Classify an image below!</h1>
             </header>
             <Dropzone
               multiple={false}
               accept="image/*"
               onDrop={this.onDrop}>
               <p>Drop an image or click to select a file to upload.</p>
-            </Dropzone>
-            <MuiThemeProvider>    
+            </Dropzone> 
               <RaisedButton label="Classify!" primary={true} onClick={(event) => this.handlePostClassification(event)}/>
-            </MuiThemeProvider>
           </div>
+          </MuiThemeProvider>
       </div>
     );
   }
@@ -179,7 +206,7 @@ class App extends Component {
         </MuiThemeProvider>
         <br/>
         <br/>
-        <span class="label label-danger">{this.state.errors}</span>
+        <span className="label label-danger">{this.state.errors}</span>
       </div>
     );
   }
