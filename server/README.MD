@@ -303,7 +303,7 @@ Note: all URLs **must** have a trailing slash.
 }`
 
 ### Get available Classification Categories
-* Endpoint: `/api/user//classification/create/`
+* Endpoint: `/api/classification_category/`
 * Method: POST
 * Headers:
     * `Content-Type: application/json`
