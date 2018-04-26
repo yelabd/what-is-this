@@ -10,13 +10,16 @@ import Dropzone from 'react-dropzone';
 import AppBar from 'material-ui/AppBar';
 import DropDownMenu from 'material-ui/DropDownMenu';
 import MenuItem from 'material-ui/MenuItem';
+import FileBase64 from 'react-file-base64';
+import Base64 from 'base-64';
 require('axios-debug')(axios);
-
 
 class App extends Component {
 
   constructor(props) {
         super(props);
+        this.baseIP = "http://167.99.228.85";
+        this.basePort= "3000";
            this.state = {
             loggedIn : false,
             username : '',
@@ -42,6 +45,31 @@ class App extends Component {
 
 
    handleLogout(event){
+    var apiBaseUrl = this.baseIP + ":" + this.basePort + "/api/user/logout/";
+    var self = this;
+    var headers={
+      'Content-Type' : 'application/json',
+      'Authorization': 'ApiKey ' + this.username + ':' + this.api_key
+    }
+     axios({ 
+                url: apiBaseUrl,
+                method:'post',
+                headers : headers,
+            })
+            .then((response) => {
+                if(response.data.success !== "false"){
+                  this.setState({ 
+                    loggedIn : false,
+                  });
+                }else{
+                  this.setState({ errors : response.data.message });
+                }
+            })
+            .catch(function(error) {
+              self.setState({ errors : "Something went wrong. Please try again." });
+            });
+
+
     this.setState({
       loggedIn:false,
       username:'',
@@ -70,49 +98,76 @@ class App extends Component {
 
   handlePostClassification(event){
     const file = this.uploadedFile;
-    var apiBaseUrl = "http:/167.99.228.85:8000/api/user/classification/create/";
+    var apiBaseUrl = this.baseIP + ":" + this.basePort + "/api/user/classification/create/";
+    var self = this;
     if(this.loggedIn === true){
       var headers = {
         'Content-Type' : 'application/json',
         'Authorization': 'ApiKey ' + this.username + ':' + this.api_key
       }
       var parameters = {
-        'photo' : this.uploadedFile,
+        "photo" : "data:"+this.uploadedFile +";" + "base-64" + "," + Base64.encode(this.uploadedFile)
       }
-      const response = axios.post(apiBaseUrl, JSON.stringify(parameters), headers);
+       axios({ 
+                url: apiBaseUrl,
+                method:'post',
+                headers : {
+                   "Content-Type" : "application/json"
+                },
+                data : parameters
+            })
+            .then((response) => {
+                if(response.data.success !== "false"){
+                  this.setState({ 
+                    loggedIn : true,
+                    api_key : response.data.api_key,
+                    username : response.data.username,
+                  });
+                }else{
+                  this.setState({ errors : response.data.message });
+                }
+            })
+            .catch(function(error) {
+              self.setState({ errors : "Something went wrong. Please try again." });
+            });
 
     }
   }
 
   handleLogin(event){
-    var apiBaseUrl = "http://167.99.228.85:8000/api/user/login/";
+    var apiBaseUrl = this.baseIP + ":" + this.basePort + "/api/user/login/";
     var self = this;
     var parameters = {
       "username" : self.state.username,
       "password" : self.state.password
     }
-    const response = axios.post(apiBaseUrl, JSON.stringify(parameters), { headers: { 'Content-Type': 'application/json' } }).catch(function(error){
-      if(!error.status){
-            self.setState({errors : "Something went wrong. Please try again."});
-      }
-    });
-    console.log(response.data);
-    if(response.data !== undefined){
-      if(response.data.success === "failure"){
-        this.setState({ errors : response.data.message });
-      }else{
-        this.setState({ 
-            loggedIn : true,
-            api_key : response.data.api_key,
-            username : response.data.username,
-        });
-      }
-    }
+    axios({ 
+                url: apiBaseUrl,
+                method:'post',
+                headers : {
+                   "Content-Type" : "application/json"
+                },
+                data : parameters
+            })
+            .then((response) => {
+                if(response.data.success !== "false"){
+                  this.setState({ 
+                    loggedIn : true,
+                    api_key : response.data.api_key,
+                    username : response.data.username,
+                  });
+                }else{
+                  this.setState({ errors : response.data.message });
+                }
+            })
+            .catch(function(error) {
+              self.setState({ errors : "Something went wrong. Please try again." });
+            });
     ReactDOM.render(<App />, document.getElementById('root'));
   }
 
   handleRegister(event){
-    var apiBaseUrl = "http://167.99.228.85:8000/api/user/register/";
+    var apiBaseUrl = this.baseIP + ":" + this.basePort + "/api/user/register/";
     var self = this;
     var parameters = {
       "username" : self.state.username,
@@ -128,7 +183,7 @@ class App extends Component {
                 data : parameters
             })
             .then((response) => {
-                if(response.data.success !== "failure"){
+                if(response.data.success !== "false"){
                   this.setState({ 
                     loggedIn : true,
                     api_key : response.data.api_key,
