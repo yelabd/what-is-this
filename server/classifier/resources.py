@@ -82,6 +82,17 @@ class UserResource(ModelResource):
         username = data.get('username', '')
         password = data.get('password', '')
 
+        if len(username) == 0:
+            return self.create_response(request, {
+                'success': False,
+                'reason': 'Username must not be empty',
+                }, HttpForbidden )
+        elif len(password) < 6:
+            return self.create_response(request, {
+            'success': False,
+            'reason': 'Password must be at least 6 characters',
+            }, HttpForbidden )
+
         try:
             User.objects.get(username=username)
         except User.DoesNotExist:
