@@ -78,6 +78,11 @@ def classify_image(image_path, model_type):
         label_path = "models/output_labels.txt"
         input_layer = "Placeholder"
         output_layer = "final_result"
+    elif model_type == 2:
+        graph_path = "/tmp/output_graph.pb"
+        label_path = "/tmp/output_labels.txt"
+        input_layer = "Placeholder"
+        output_layer = "final_result"
 
     graph = load_graph(graph_path)
 
@@ -106,10 +111,11 @@ def classify_image(image_path, model_type):
 
     for i in top_k:
         pairs[labels[i]] = results[i]
+        print(labels[i],results[i])
 
     return pairs
 
 if __name__ == "__main__":
-    classify_image("flowers/test1.jpg",0)
+    classify_image("catt1.jpg",2)
 
 
